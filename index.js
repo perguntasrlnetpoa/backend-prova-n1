@@ -44,7 +44,7 @@ app.post("/send-result", async (req, res) => {
 
     // ✅ ENVIO COM RESEND
     await resend.emails.send({
-      from: "Prova Online <onboarding@resend.dev>",
+      from: "Prova Online <perguntasrlnetpoa@gmail.com>",
       to: ["perguntasrlnetpoa@gmail.com"],
       subject: `Resultado da Prova - ${user}`,
       html: messageHtml
