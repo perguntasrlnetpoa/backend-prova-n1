@@ -6,19 +6,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// ✅ Resend (API, não SMTP)
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 app.post("/send-result", async (req, res) => {
   const { user, answers, score, status } = req.body;
 
   try {
     console.log("📩 Requisição recebida");
+    console.log("🔑 RESEND_API_KEY existe?", !!process.env.RESEND_API_KEY);
 
     const statusIcon = status === "APROVADO" ? "✅" : "⚠️";
 
@@ -46,26 +42,24 @@ app.post("/send-result", async (req, res) => {
         .join("")}
     `;
 
-    const mailOptions = {
-      from: `"Prova Online" <${process.env.EMAIL_USER}>`,
-      to: process.env.EMAIL_USER,
+    // ✅ ENVIO COM RESEND
+    await resend.emails.send({
+      from: "Prova Online <onboarding@resend.dev>",
+      to: ["perguntasrlnetpoa@gmail.com"],
       subject: `Resultado da Prova - ${user}`,
       html: messageHtml
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    console.log("✅ Email enviado com sucesso");
+    console.log("✅ Email enviado com Resend");
     return res.status(200).json({ success: true });
 
   } catch (error) {
-    console.error("❌ ERRO EMAIL:", error);
-    return res.status(500).json({ success: false });
+    console.error("❌ ERRO RESEND:", error);
+    return res.status(500).json({ success: false, error });
   }
 });
 
 const PORT = process.env.PORT || 3001;
-
 app.listen(PORT, () => {
   console.log(`🚀 Backend rodando na porta ${PORT}`);
 });
